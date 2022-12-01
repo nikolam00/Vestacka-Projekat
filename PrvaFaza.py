@@ -27,38 +27,38 @@ class Game:
        
     def getStartState(self):
 
-        sys.stdout.write("Unesite broj igraca: (1 ili 2) ")
+        sys.stdout.write("Broj igrača (1 ili 2): ")
         sys.stdout.flush()
         if(int(sys.stdin.readline(),10)==2):
-            sys.stdout.write("Unesite ime igraca koji igra prvi: ")
+            sys.stdout.write("Prvi igrač: ")
             sys.stdout.flush()
             self.Player1=Player(sys.stdin.readline(),"X")
 
-            sys.stdout.write("Unesite ime drugog igraca: ")
+            sys.stdout.write("Drugi igrač: ")
             sys.stdout.flush()
             self.Player2=Player(sys.stdin.readline(),"O")
         else:
-            sys.stdout.write("Da li zelite da igrate prvi? Da/Ne ")
+            sys.stdout.write("Da li želite da igrate prvi? Da/Ne ")
             sys.stdout.flush()
             if(sys.stdin.readline().lower()=="da"):
-                sys.stdout.write("Unesite ime igraca: ")
+                sys.stdout.write("Igrač: ")
                 sys.stdout.flush()
                 self.Player1=Player(sys.stdin.readline(),"X")
-                self.Player2=Player("Racunar","Y")
+                self.Player2=Player("Računar","O")
             else:
-                sys.stdout.write("Unesite ime igraca: ")
+                sys.stdout.write("Igrač: ")
                 sys.stdout.flush()
-                self.Player1=Player("Racunar","X")
+                self.Player1=Player("Računar","X")
                 self.Player2=Player(sys.stdin.readline(),"O")
                 
 
-        sys.stdout.write("Unesite broj vrsta table :")
-        sys.stdout.flush()
-        m = int(sys.stdin.readline())
-        
-        sys.stdout.write("Unesite broj kolona table :")
+        sys.stdout.write("Broj vrsta table: ")
         sys.stdout.flush()
         n = int(sys.stdin.readline())
+        
+        sys.stdout.write("Broj kolona table: ")
+        sys.stdout.flush()
+        m = int(sys.stdin.readline())
 
         self.board=Board(n,m)
 
@@ -129,7 +129,10 @@ class Game:
 
         sys.stdout.write("\n")
         sys.stdout.flush()
-        sys.stdout.write("Unesite Vas potez:")
+        
+        igrac = self.Player1.Name if self.NaPotezu==1 else self.Player2.Name
+
+        sys.stdout.write('Na potezu: {}Vaš potez:'.format(igrac))
         sys.stdout.flush()
         
         PozX,PozY = sys.stdin.readline().split()
@@ -141,16 +144,53 @@ class Game:
                 self.board.Tabla[Polje[0]][Polje[1]]="X"
                 self.board.Tabla[Polje[0]-1][Polje[1]]="X"
                 self.NaPotezu=2
+                if(self.CheckEndGame()==True):
+                    self.EndOfGame()
             else:
                 self.board.Tabla[Polje[0]][Polje[1]]="O"
                 self.board.Tabla[Polje[0]][Polje[1]+1]="O"
                 self.NaPotezu=1
+                if(self.CheckEndGame()==True):
+                    self.EndOfGame()
             
             return True
         else:
-            sys.stdout.write("Uneli ste nevalidan potez, pokusajte ponovo!\n")
+            sys.stdout.write("Nevalidan potez, pokusajte ponovo!\n")
             sys.stdout.flush()
             return False
+
+    def CheckEndGame(self):
+        
+        if(self.NaPotezu==1):
+            for j in range(0,self.board.m):
+                i=1 #Krecemo od prve vrste
+                while i<self.board.n:
+                    if(self.board.Tabla[i][j]==None):
+                        if(self.board.Tabla[i-1][j]==None):
+                            return False   
+                        else:
+                            i+=1
+                    else:
+                        i+=2
+        else:
+            for i in range(0,self.board.n):
+                j=0
+                while j<self.board.m-1:
+                    if(self.board.Tabla[i][j]==None):
+                        if(self.board.Tabla[i][j+1]==None):
+                            return False   
+                        else:
+                            j+=1
+                    else:
+                        j+=2
+        return True
+
+    def EndOfGame(self):
+        if(self.NaPotezu==1):
+            sys.stdout.write('Pobednik je igrac 2: '.format(self.Player2.Name))
+        else:
+            sys.stdout.write('Pobednik je igrac 1: '.format(self.Player1.Name))
+                        
 
 Igra=Game()
 Igra.getStartState()
@@ -161,7 +201,7 @@ while(True):
         Igra.PrintBoard()
 
 
-Igra.PrintBoard()
+
 
 
                 
