@@ -24,8 +24,9 @@ class Game:
         self.Player1 = None
         self.Player2 = None
         self.board = None
+        self.finished=False
        
-    def getStartState(self):
+    def GetStartState(self):
 
         sys.stdout.write("Broj igrača (1 ili 2): ")
         sys.stdout.flush()
@@ -144,18 +145,18 @@ class Game:
                 self.board.Tabla[Polje[0]][Polje[1]]="X"
                 self.board.Tabla[Polje[0]-1][Polje[1]]="X"
                 self.NaPotezu=2
-                if(self.CheckEndGame()==True):
+                if(self.CheckEndGame()):
                     self.EndOfGame()
             else:
                 self.board.Tabla[Polje[0]][Polje[1]]="O"
                 self.board.Tabla[Polje[0]][Polje[1]+1]="O"
                 self.NaPotezu=1
-                if(self.CheckEndGame()==True):
+                if(self.CheckEndGame()):
                     self.EndOfGame()
             
             return True
         else:
-            sys.stdout.write("Nevalidan potez, pokusajte ponovo!\n")
+            sys.stdout.write("Nevalidan potez, pokušajte ponovo!\n")
             sys.stdout.flush()
             return False
 
@@ -176,8 +177,8 @@ class Game:
             for i in range(0,self.board.n):
                 j=0
                 while j<self.board.m-1:
-                    if(self.board.Tabla[i][j]==None):
-                        if(self.board.Tabla[i][j+1]==None):
+                    if(self.board.Tabla[i][j+1]==None):
+                        if(self.board.Tabla[i][j]==None):
                             return False   
                         else:
                             j+=1
@@ -186,35 +187,17 @@ class Game:
         return True
 
     def EndOfGame(self):
+        self.finished=True
         if(self.NaPotezu==1):
-            sys.stdout.write('Pobednik je igrac 2: '.format(self.Player2.Name))
+            sys.stdout.write('Pobednik je igrač 2:{}\n'.format(self.Player2.Name))
         else:
-            sys.stdout.write('Pobednik je igrac 1: '.format(self.Player1.Name))
+            sys.stdout.write('Pobednik je igrač 1:{}\n'.format(self.Player1.Name))
                         
 
 Igra=Game()
-Igra.getStartState()
+Igra.GetStartState()
 Igra.PrintBoard()
 
-while(True):
+while(not Igra.finished):
     if(Igra.PlayMove()==True):
         Igra.PrintBoard()
-
-
-
-
-
-                
-
-
-
-
-
-        
-
-        
-    
-
-        
-
-        
