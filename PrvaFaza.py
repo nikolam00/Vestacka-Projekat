@@ -25,51 +25,53 @@ class Game:
         self.Player2 = None
         self.board = None
         self.finished=False
+        self.Pobednik = None
        
     def GetStartState(self):
 
         sys.stdout.write("Broj igrača (1 ili 2): ")
         sys.stdout.flush()
-        if(int(sys.stdin.readline(),10)==2):
+        if(int(input(),10)==2):
             sys.stdout.write("Prvi igrač: ")
             sys.stdout.flush()
-            self.Player1=Player(sys.stdin.readline(),"X")
+            self.Player1=Player(input(),"X")
 
             sys.stdout.write("Drugi igrač: ")
             sys.stdout.flush()
-            self.Player2=Player(sys.stdin.readline(),"O")
+            self.Player2=Player(input(),"O")
         else:
             sys.stdout.write("Da li želite da igrate prvi? Da/Ne ")
             sys.stdout.flush()
-            if(sys.stdin.readline().lower()=="da"):
+            if(str(input().lower())=="da"):
                 sys.stdout.write("Igrač: ")
                 sys.stdout.flush()
-                self.Player1=Player(sys.stdin.readline(),"X")
+                self.Player1=Player(input(),"X")
                 self.Player2=Player("Računar","O")
             else:
                 sys.stdout.write("Igrač: ")
                 sys.stdout.flush()
                 self.Player1=Player("Računar","X")
-                self.Player2=Player(sys.stdin.readline(),"O")
+                self.Player2=Player(input(),"O")
+                
                 
 
         sys.stdout.write("Broj vrsta table: ")
         sys.stdout.flush()
-        n = int(sys.stdin.readline())
+        n = int(input())
         
         sys.stdout.write("Broj kolona table: ")
         sys.stdout.flush()
-        m = int(sys.stdin.readline())
+        m = int(input())
 
         self.board=Board(n,m)
-
+        self.labVer = [str(i) for i in range(1,self.board.n+2)]
+        self.labHor = [chr(i) for i in range(ord("A"),ord("A")+self.board.m+1)]
+    
     def PrintBoard(self):
-        labVer = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"]
-        labHor = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"]
-        
+
         sys.stdout.write("     ")
         for i in range(0,self.board.m):
-            sys.stdout.write(labHor[i]+ "   ")
+            sys.stdout.write(self.labHor[i]+ "   ")
 
         sys.stdout.write("\n")
 
@@ -80,10 +82,10 @@ class Game:
         sys.stdout.write("\n")    
         
         for i in range(0,self.board.n):
-            if(int(labVer[self.board.n-i])<=10):
+            if(int(self.labVer[self.board.n-i])<=10):
                  sys.stdout.write(" ")
                 
-            sys.stdout.write(labVer[self.board.n-i - 1]+ " ǁ ")
+            sys.stdout.write(self.labVer[self.board.n-i - 1]+ " ǁ ")
 
             for j in range(0, self.board.m-1):
                 if(self.board.Tabla[i][j]!=None):
@@ -92,9 +94,9 @@ class Game:
                     sys.stdout.write("_ | ")
             j+=1
             if(self.board.Tabla[i][j]!=None):
-                sys.stdout.write(self.board.Tabla[i][j] + " ǁ " + labVer[self.board.n-i - 1])
+                sys.stdout.write(self.board.Tabla[i][j] + " ǁ " + self.labVer[self.board.n-i - 1])
             else:
-                sys.stdout.write("_ ǁ " + labVer[self.board.n-i - 1])
+                sys.stdout.write("_ ǁ " + self.labVer[self.board.n-i - 1])
             
             sys.stdout.write("\n")
         
@@ -105,12 +107,17 @@ class Game:
         sys.stdout.write("\n")
         sys.stdout.write("     ")
         for i in range(0,self.board.m):
-            sys.stdout.write(labHor[i]+ "   ")
+            sys.stdout.write(self.labHor[i]+ "   ")
 
         sys.stdout.flush()
 
     def IsValid(self,PozX,PozY):
-        
+
+        if PozX not in self.labVer:
+            return False
+        if PozY not in self.labHor:
+            return False
+        PozX=int(PozX)
         Polje=(self.board.n-PozX,ord(PozY)-ord("A"))
 
         if(self.NaPotezu==2):
@@ -133,13 +140,13 @@ class Game:
         
         igrac = self.Player1.Name if self.NaPotezu==1 else self.Player2.Name
 
-        sys.stdout.write('Na potezu: {}Vaš potez:'.format(igrac))
+        sys.stdout.write('Na potezu: {} Vaš potez:'.format(igrac))
         sys.stdout.flush()
         
-        PozX,PozY = sys.stdin.readline().split()
-        PozX = int(PozX,10)
+        PozX,PozY = input().upper().split()
 
         if(self.IsValid(PozX,PozY)==True):
+            PozX = int(PozX,10)
             Polje=(self.board.n-PozX,ord(PozY)-ord("A"))
             if(self.NaPotezu==1):
                 self.board.Tabla[Polje[0]][Polje[1]]="X"
@@ -189,15 +196,23 @@ class Game:
     def EndOfGame(self):
         self.finished=True
         if(self.NaPotezu==1):
-            sys.stdout.write('Pobednik je igrač 2:{}\n'.format(self.Player2.Name))
+            self.Pobednik=self.Player2
         else:
-            sys.stdout.write('Pobednik je igrač 1:{}\n'.format(self.Player1.Name))
+            self.Pobednik=self.Player1
+    
+    def PlayGame(self):
+        while(not self.finished):
+            if(Igra.PlayMove()==True):
+                Igra.PrintBoard()
+
+        if(self.Pobednik==self.Player1):
+            sys.stdout.write('\nPobednik je igrač 1: {}\n'.format(self.Player1.Name))
+        else:
+            sys.stdout.write('\nPobednik je igrač 2: {}\n'.format(self.Player2.Name))
+        
                         
 
 Igra=Game()
 Igra.GetStartState()
 Igra.PrintBoard()
-
-while(not Igra.finished):
-    if(Igra.PlayMove()==True):
-        Igra.PrintBoard()
+Igra.PlayGame()
