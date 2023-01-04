@@ -1,6 +1,7 @@
 import re
 import time
 import sys
+import copy
 
 class Player:
     def __init__(self, Name , Znak):
@@ -193,6 +194,32 @@ class Game:
                         j+=2
         return True
 
+    def CheckEndGame(naPotezu,board):
+        
+        if(naPotezu==1):
+            for j in range(0,board.m):
+                i=1 #Krecemo od prve vrste
+                while i<board.n:
+                    if(board.Tabla[i][j]==None):
+                        if(board.Tabla[i-1][j]==None):
+                            return False   
+                        else:
+                            i+=1
+                    else:
+                        i+=2
+        else:
+            for i in range(0,board.n):
+                j=0
+                while j<board.m-1:
+                    if(board.Tabla[i][j+1]==None):
+                        if(board.Tabla[i][j]==None):
+                            return False   
+                        else:
+                            j+=1
+                    else:
+                        j+=2
+        return True
+
     def EndOfGame(self):
         self.finished=True
         if(self.NaPotezu==1):
@@ -202,15 +229,75 @@ class Game:
     
     def PlayGame(self):
         while(not self.finished):
-            if(Igra.PlayMove()==True):
-                Igra.PrintBoard()
+            
+            
+
+            if(self.PlayMove()==True):
+                self.PrintBoard()
 
         if(self.Pobednik==self.Player1):
             sys.stdout.write('\nPobednik je igrač 1: {}\n'.format(self.Player1.Name))
         else:
             sys.stdout.write('\nPobednik je igrač 2: {}\n'.format(self.Player2.Name))
         
-                        
+    def AvailableMoves(self)->set:
+        Moves = set()
+        if(self.NaPotezu==1):
+            for j in range(0,self.board.m):
+                i=1 #Krecemo od prve vrste
+                while i<self.board.n:
+                    if(self.board.Tabla[i][j]==None):
+                        if(self.board.Tabla[i-1][j]==None):
+                            Moves.add((self.labVer[self.board.n-1-i],self.labHor[j]))
+                            i+=1
+                        else:
+                            i+=1
+                    else:
+                        i+=2
+        else:
+            for i in range(0,self.board.n):
+                j=0
+                while j<self.board.m-1:
+                    if(self.board.Tabla[i][j+1]==None):
+                        if(self.board.Tabla[i][j]==None):
+                            Moves.add((self.labVer[self.board.n-1-i],self.labHor[j]));  
+                            j+=1
+                        else:
+                            j+=1
+                    else:
+                        j+=2
+
+        return Moves
+
+    def AvailableStates(self)->dict:
+        
+        Moves = self.AvailableMoves()
+        NewStates = dict()
+
+        if(self.NaPotezu==1):
+            for x in Moves:
+                NovaTabla = copy.deepcopy(self.board.Tabla)
+
+                PozX = self.board.n-int(x[0],10)
+                PozY=ord(x[1])-ord("A")
+
+                NovaTabla[PozX][PozY]="X"
+                NovaTabla[PozX-1][PozY]="X"
+
+                NewStates[x]=NovaTabla
+        else:
+            for x in Moves:
+                NovaTabla = copy.deepcopy(self.board.Tabla)
+
+                PozX = self.board.n-int(x[0],10)
+                PozY=ord(x[1])-ord("A")
+
+                NovaTabla[PozX][PozY]="O"
+                NovaTabla[PozX][PozY+1]="O"
+
+                NewStates[x]=NovaTabla
+
+        return NewStates
 
 Igra=Game()
 Igra.GetStartState()
