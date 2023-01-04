@@ -299,65 +299,6 @@ class Game:
 
         return NewStates
 
-
-    def minmax(self,board, naPotezu, depth, alpha, beta):
-
-    # If we have reached the maximum search depth or the game is over, return the evaluation of the current board state
-        if depth == 0 or self.CheckEndGame(naPotezu,board):
-            return evaluate(board)
-
-    
-        if player == MAX_PLAYER:
-            # Initialize the maximum evaluation to negative infinity
-            max_eval = float('-inf')
-            # Loop through all possible moves for the maximizing player
-
-            for move in get_possible_moves(board, player):
-                # Make the move and recursively call minmax on the resulting board state
-                new_board = make_move(board, move, player)
-                eval = minmax(new_board, depth-1, MIN_PLAYER, alpha, beta)
-
-                # Update the maximum evaluation if necessary
-                max_eval = max(max_eval, eval)
-
-                # Update the alpha value if necessary
-                alpha = max(alpha, eval)
-                # If beta is less than or equal to alpha, we can stop searching, as the current player can't possibly improve their score
-
-                if beta <= alpha:
-                    break
-            return max_eval
-
-        else:
-            # Initialize the minimum evaluation to positive infinity
-            min_eval = float('inf')
-        
-            # Loop through all possible moves for the minimizing player
-
-            for move in get_possible_moves(board, player):
-                # Make the move and recursively call minmax on the resulting board state
-                new_board = make_move(board, move, player)
-                eval = minmax(new_board, depth-1, MAX_PLAYER, alpha, beta)
-            
-                # Update the minimum evaluation if necessary
-                min_eval = min(min_eval, eval)
-
-                # Update the beta value if necessary
-
-                beta = min(beta, eval)
-
-                # If beta is less than or equal to alpha, we can stop searching, as the current player can't possibly improve their score
-
-                if beta <= alpha:
-
-                    break
-
-            return min_eval
-
-
-
-
-
 Igra=Game()
 Igra.GetStartState()
 Igra.PrintBoard()

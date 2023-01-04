@@ -133,6 +133,23 @@ class Game:
                 return False
 
         return True
+
+    def PlayConcreteMove(self,PozX,PozY):
+
+        PozX = int(PozX,10)
+        Polje=(self.board.n-PozX,ord(PozY)-ord("A"))
+        if(self.NaPotezu==1):
+            self.board.Tabla[Polje[0]][Polje[1]]="X"
+            self.board.Tabla[Polje[0]-1][Polje[1]]="X"
+            self.NaPotezu=2
+            if(self.CheckEndGame()):
+                self.EndOfGame()
+        else:
+            self.board.Tabla[Polje[0]][Polje[1]]="O"
+            self.board.Tabla[Polje[0]][Polje[1]+1]="O"
+            self.NaPotezu=1
+            if(self.CheckEndGame()):
+                self.EndOfGame()
     
     def PlayMove(self):
 
@@ -194,25 +211,25 @@ class Game:
                         j+=2
         return True
 
-    def CheckEndGame(naPotezu,board):
+    def CheckEndGameComp(self,naPotezu,board):
         
         if(naPotezu==1):
-            for j in range(0,board.m):
+            for j in range(0,self.board.m):
                 i=1 #Krecemo od prve vrste
-                while i<board.n:
-                    if(board.Tabla[i][j]==None):
-                        if(board.Tabla[i-1][j]==None):
+                while i<self.board.n:
+                    if(board[i][j]==None):
+                        if(board[i-1][j]==None):
                             return False   
                         else:
                             i+=1
                     else:
                         i+=2
         else:
-            for i in range(0,board.n):
+            for i in range(0,self.board.n):
                 j=0
-                while j<board.m-1:
-                    if(board.Tabla[i][j+1]==None):
-                        if(board.Tabla[i][j]==None):
+                while j<self.board.m-1:
+                    if(board[i][j+1]==None):
+                        if(board[i][j]==None):
                             return False   
                         else:
                             j+=1
@@ -229,9 +246,6 @@ class Game:
     
     def PlayGame(self):
         while(not self.finished):
-            
-            
-
             if(self.PlayMove()==True):
                 self.PrintBoard()
 
@@ -269,14 +283,14 @@ class Game:
 
         return Moves
 
-    def AvailableStates(self)->dict:
+    def AvailableStates(self,naPotezu,board)->dict:
         
-        Moves = self.AvailableMoves()
+        Moves = self.AvailableMoves(naPotezu,board)
         NewStates = dict()
 
-        if(self.NaPotezu==1):
+        if(naPotezu==1):
             for x in Moves:
-                NovaTabla = copy.deepcopy(self.board.Tabla)
+                NovaTabla = copy.deepcopy(board)
 
                 PozX = self.board.n-int(x[0],10)
                 PozY=ord(x[1])-ord("A")
@@ -287,7 +301,7 @@ class Game:
                 NewStates[x]=NovaTabla
         else:
             for x in Moves:
-                NovaTabla = copy.deepcopy(self.board.Tabla)
+                NovaTabla = copy.deepcopy(board)
 
                 PozX = self.board.n-int(x[0],10)
                 PozY=ord(x[1])-ord("A")
@@ -299,25 +313,67 @@ class Game:
 
         return NewStates
 
+    def AvailableMoves(self,naPotezu,board)->set:
 
-    def minmax(self,board, naPotezu, depth, alpha, beta):
+        Moves = set()
+
+        if(naPotezu==1):
+            for j in range(0,self.board.m):
+                i=1 #Krecemo od prve vrste
+                while i<self.board.n:
+                    if(board[i][j]==None):
+                        if(board[i-1][j]==None):
+                            Moves.add((self.labVer[self.board.n-1-i],self.labHor[j]))
+                            i+=1
+                        else:
+                            i+=1
+                    else:
+                        i+=2
+        else:
+            for i in range(0,self.board.n):
+                j=0
+                while j<self.board.m-1:
+                    if(board[i][j+1]==None):
+                        if(board[i][j]==None):
+                            Moves.add((self.labVer[self.board.n-1-i],self.labHor[j]));  
+                            j+=1
+                        else:
+                            j+=1
+                    else:
+                        j+=2
+        return Moves
+
+    def Evaluate(self,board,naPotezu):
+        
+        return len(self.AvailableMoves(naPotezu,board))-len(self.AvailableMoves(2 if naPotezu==1 else 1,board))
+        
+
+    def minmax(self,board,naPotezu, depth, alpha, beta):
 
     # If we have reached the maximum search depth or the game is over, return the evaluation of the current board state
-        if depth == 0 or self.CheckEndGame(naPotezu,board):
-            return evaluate(board)
+        if depth == 0 or self.CheckEndGameComp(naPotezu,board):
+            return self.Evaluate(board,naPotezu)
 
-    
-        if player == MAX_PLAYER:
+        if naPotezu == 1:
             # Initialize the maximum evaluation to negative infinity
             max_eval = float('-inf')
             # Loop through all possible moves for the maximizing player
 
-            for move in get_possible_moves(board, player):
+            NoveTable = self.AvailableStates(naPotezu,board)
+
+            bestMove = list(NoveTable.keys())[0]
+
+            for Potez in NoveTable.keys():
                 # Make the move and recursively call minmax on the resulting board state
-                new_board = make_move(board, move, player)
-                eval = minmax(new_board, depth-1, MIN_PLAYER, alpha, beta)
+                
+                retTuple = self.minmax(NoveTable[Potez], depth-1, 2, alpha, beta)
+                
+                eval =retTuple[0]
+                bestMove = retTuple[1]
 
                 # Update the maximum evaluation if necessary
+                if(eval>max_eval):
+                    bestMove = Potez
                 max_eval = max(max_eval, eval)
 
                 # Update the alpha value if necessary
@@ -326,7 +382,7 @@ class Game:
 
                 if beta <= alpha:
                     break
-            return max_eval
+            return (max_eval,bestMove)
 
         else:
             # Initialize the minimum evaluation to positive infinity
@@ -334,10 +390,20 @@ class Game:
         
             # Loop through all possible moves for the minimizing player
 
-            for move in get_possible_moves(board, player):
+            NoveTable = self.AvailableStates(naPotezu,board)
+
+            bestMove = list(NoveTable.keys())[0]
+
+            for Potez in NoveTable.keys():
                 # Make the move and recursively call minmax on the resulting board state
-                new_board = make_move(board, move, player)
-                eval = minmax(new_board, depth-1, MAX_PLAYER, alpha, beta)
+                
+                retTuple = self.minmax(NoveTable[Potez], depth-1, 1, alpha, beta)
+                
+                eval =retTuple[0]
+                bestMove = retTuple[1]
+
+                if(eval<min_eval):
+                    bestMove = Potez
             
                 # Update the minimum evaluation if necessary
                 min_eval = min(min_eval, eval)
@@ -352,13 +418,25 @@ class Game:
 
                     break
 
-            return min_eval
+            return (min_eval,bestMove)
 
 
-
+    def PlayGameHumanComp(self):
+        while(not self.finished):
+            if self.NaPotezu==1:
+                if self.PlayMove()==True:
+                    self.PrintBoard()
+            else:
+                (best_eval, best_move) = self.minmax(self.board.Tabla, 5, self.NaPotezu, float('-inf'), float('inf'))
+                self.PlayConcreteMove(best_move[0],best_move[1])
+                self.PrintBoard()
+        if(self.Pobednik==self.Player1):
+            sys.stdout.write('\nPobednik je igrač 1: {}\n'.format(self.Player1.Name))
+        else:
+            sys.stdout.write('\nPobednik je igrač 2: {}\n'.format(self.Player2.Name))
 
 
 Igra=Game()
 Igra.GetStartState()
 Igra.PrintBoard()
-Igra.PlayGame()
+Igra.PlayGameHumanComp()
