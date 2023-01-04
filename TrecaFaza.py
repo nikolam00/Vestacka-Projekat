@@ -348,11 +348,11 @@ class Game:
         return len(self.AvailableMoves(naPotezu,board))-len(self.AvailableMoves(2 if naPotezu==1 else 1,board))
         
 
-    def minmax(self,board,naPotezu, depth, alpha, beta):
+    def minmax(self,board,naPotezu, Moves:list, depth, alpha, beta):
 
     # If we have reached the maximum search depth or the game is over, return the evaluation of the current board state
         if depth == 0 or self.CheckEndGameComp(naPotezu,board):
-            return self.Evaluate(board,naPotezu)
+            return (self.Evaluate(board,naPotezu),Moves[0])
 
         if naPotezu == 1:
             # Initialize the maximum evaluation to negative infinity
@@ -365,15 +365,14 @@ class Game:
 
             for Potez in NoveTable.keys():
                 # Make the move and recursively call minmax on the resulting board state
-                
-                retTuple = self.minmax(NoveTable[Potez], depth-1, 2, alpha, beta)
+                Moves.append(Potez)
+                retTuple = self.minmax(NoveTable[Potez], 2,Moves,depth-1,  alpha, beta)
                 
                 eval =retTuple[0]
-                bestMove = retTuple[1]
 
                 # Update the maximum evaluation if necessary
                 if(eval>max_eval):
-                    bestMove = Potez
+                    bestMove = retTuple[1]
                 max_eval = max(max_eval, eval)
 
                 # Update the alpha value if necessary
@@ -382,9 +381,10 @@ class Game:
 
                 if beta <= alpha:
                     break
+                Moves.remove(Potez)
             return (max_eval,bestMove)
 
-        else:
+        elif naPotezu==2:
             # Initialize the minimum evaluation to positive infinity
             min_eval = float('inf')
         
@@ -396,14 +396,13 @@ class Game:
 
             for Potez in NoveTable.keys():
                 # Make the move and recursively call minmax on the resulting board state
-                
-                retTuple = self.minmax(NoveTable[Potez], depth-1, 1, alpha, beta)
+                Moves.append(Potez)
+                retTuple = self.minmax(NoveTable[Potez], 1,Moves,depth - 1, alpha, beta)
                 
                 eval =retTuple[0]
-                bestMove = retTuple[1]
-
+                
                 if(eval<min_eval):
-                    bestMove = Potez
+                    bestMove = retTuple[1]
             
                 # Update the minimum evaluation if necessary
                 min_eval = min(min_eval, eval)
@@ -417,7 +416,7 @@ class Game:
                 if beta <= alpha:
 
                     break
-
+                Moves.remove(Potez)
             return (min_eval,bestMove)
 
 
@@ -427,7 +426,8 @@ class Game:
                 if self.PlayMove()==True:
                     self.PrintBoard()
             else:
-                (best_eval, best_move) = self.minmax(self.board.Tabla, 5, self.NaPotezu, float('-inf'), float('inf'))
+                (best_eval, best_move) = self.minmax(self.board.Tabla,self.NaPotezu,[], 8 , float('-inf'), float('inf'))
+                print(best_move[0],best_move[1])
                 self.PlayConcreteMove(best_move[0],best_move[1])
                 self.PrintBoard()
         if(self.Pobednik==self.Player1):
