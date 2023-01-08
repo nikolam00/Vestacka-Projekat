@@ -347,9 +347,13 @@ class Game:
     def Evaluate(self,board):
         
         return len(self.AvailableMoves(1,board))-len(self.AvailableMoves(2,board))
-        
+    
+    def SortirajPoteze(self,NaPotezu,Potezi:set,board):
+        PossibleOpponentMoves = self.AvailableMoves(2 if NaPotezu==1 else 1,board)
+        return Potezi.intersection(PossibleOpponentMoves)
+
     def minmax(self, board, depth, naPotezu, alpha, beta):
-        if depth == 0:
+        if depth == 0:  
             return self.Evaluate(board), None
         if self.CheckEndGameComp(naPotezu,board):
             return -100 if naPotezu==1 else 100,None
@@ -359,8 +363,16 @@ class Game:
             max_eval = float('-inf')
             best_move = None
             possible_moves=self.AvailableStates(1,board)
+            best_possible_moves = list(self.SortirajPoteze(naPotezu,set(possible_moves.keys()),board))
+            ListaPoteza = list(possible_moves.keys())
+
+            if len(best_possible_moves)!=0:
+                ListaPoteza = best_possible_moves
+
             #Sortiranje tabli po evaluate svake table?
-            for move in list(possible_moves.keys()):
+            ListaPoteza.sort(reverse=True,key=lambda potez:self.Evaluate(possible_moves[potez]))
+
+            for move in ListaPoteza:
                 new_board = possible_moves[move]
                 eval, _ = self.minmax(new_board, depth-1, 2, alpha, beta)
                 if eval > max_eval:
@@ -374,7 +386,17 @@ class Game:
             min_eval = float('inf')
             best_move = None
             possible_moves=self.AvailableStates(2,board)
-            for move in list(possible_moves.keys()):
+
+            best_possible_moves = list(self.SortirajPoteze(naPotezu,set(possible_moves.keys()),board))
+            ListaPoteza = list(possible_moves.keys())
+
+            if len(best_possible_moves)!=0:
+
+                ListaPoteza = best_possible_moves
+
+            ListaPoteza.sort(reverse=False,key=lambda potez:self.Evaluate(possible_moves[potez]))
+
+            for move in ListaPoteza:
                 new_board = possible_moves[move]
                 eval, _ = self.minmax(new_board, depth-1, 1, alpha, beta)
                 if eval < min_eval:
@@ -389,7 +411,7 @@ class Game:
         while(not self.finished):
             if self.NaPotezu==1:
                 if(self.Player1.Name=="Računar"):
-                    (best_eval, best_move) = self.minmax(self.board.Tabla, 4, self.NaPotezu, float('-inf'), float('inf'))
+                    (best_eval, best_move) = self.minmax(self.board.Tabla, 5, self.NaPotezu, float('-inf'), float('inf'))
                     self.PlayConcreteMove(best_move[0],best_move[1])
                     self.PrintBoard()
                 else:
@@ -397,7 +419,7 @@ class Game:
                         self.PrintBoard()
             else:
                 if(self.Player2.Name=="Računar"):
-                    (best_eval, best_move) = self.minmax(self.board.Tabla, 4, self.NaPotezu, float('-inf'), float('inf'))
+                    (best_eval, best_move) = self.minmax(self.board.Tabla, 5, self.NaPotezu, float('-inf'), float('inf'))
                     self.PlayConcreteMove(best_move[0],best_move[1])
                     self.PrintBoard()
                 else:
