@@ -1,3 +1,4 @@
+import json
 import re
 import time
 import sys
@@ -352,13 +353,18 @@ class Game:
         PossibleOpponentMoves = self.AvailableMoves(2 if NaPotezu==1 else 1,board)
         return Potezi.intersection(PossibleOpponentMoves)
 
-    def minmax(self, board, depth, naPotezu, alpha, beta):
+    def minmax(self, board, depth, naPotezu, alpha, beta, trans_table):
         if depth == 0:  
             return self.Evaluate(board), None
         if self.CheckEndGameComp(naPotezu,board):
             return -100 if naPotezu==1 else 100,None
         # if depth == 0 or self.CheckEndGameComp(naPotezu,board):
         #     return self.Evaluate(board), None
+
+        hashedBoard=json.dumps(board)
+        if hashedBoard in trans_table:
+            return trans_table[hashedBoard]
+
         if naPotezu == 1:
             max_eval = float('-inf')
             best_move = None
@@ -374,14 +380,17 @@ class Game:
 
             for move in ListaPoteza:
                 new_board = possible_moves[move]
-                eval, _ = self.minmax(new_board, depth-1, 2, alpha, beta)
+                eval, _ = self.minmax(new_board, depth-1, 2, alpha, beta,trans_table)
                 if eval > max_eval:
                     max_eval = eval
                     best_move = move
                 alpha = max(alpha, eval)
                 if beta <= alpha:
                     break
+
+            trans_table[hashedBoard] = (max_eval, best_move)
             return max_eval, best_move
+
         else:
             min_eval = float('inf')
             best_move = None
@@ -398,20 +407,26 @@ class Game:
 
             for move in ListaPoteza:
                 new_board = possible_moves[move]
-                eval, _ = self.minmax(new_board, depth-1, 1, alpha, beta)
+                eval, _ = self.minmax(new_board, depth-1, 1, alpha, beta,trans_table)
                 if eval < min_eval:
                     min_eval = eval
                     best_move = move
                 beta = min(beta, eval)
                 if beta <= alpha:
                     break
+            
+            trans_table[hashedBoard] = (min_eval, best_move)
             return min_eval, best_move
 
     def PlayGameHumanComp(self):
+        trans_table={}
         while(not self.finished):
             if self.NaPotezu==1:
                 if(self.Player1.Name=="Računar"):
-                    (best_eval, best_move) = self.minmax(self.board.Tabla, 5, self.NaPotezu, float('-inf'), float('inf'))
+                    # trans_table={}
+                    start_time=time.time()
+                    (best_eval, best_move) = self.minmax(self.board.Tabla, 4, self.NaPotezu, float('-inf'), float('inf'),trans_table)
+                    print("\n--- %s seconds ---\n" % (time.time() - start_time))
                     self.PlayConcreteMove(best_move[0],best_move[1])
                     self.PrintBoard()
                 else:
@@ -419,7 +434,10 @@ class Game:
                         self.PrintBoard()
             else:
                 if(self.Player2.Name=="Računar"):
-                    (best_eval, best_move) = self.minmax(self.board.Tabla, 5, self.NaPotezu, float('-inf'), float('inf'))
+                    # trans_table={}
+                    start_time=time.time()
+                    (best_eval, best_move) = self.minmax(self.board.Tabla, 4, self.NaPotezu, float('-inf'), float('inf'),trans_table)
+                    print("\n--- %s seconds ---\n" % (time.time() - start_time))
                     self.PlayConcreteMove(best_move[0],best_move[1])
                     self.PrintBoard()
                 else:
